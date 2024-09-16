@@ -1,0 +1,27 @@
+# © 2024 Microglot LLC
+#
+# SPDX-License-Identifier: CC-BY-SA-4.0
+
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - "**"
+  workflow_dispatch: {}
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Ensure files are annotated correctly for licensing
+        run: make test/license
+      - name: Test if the website can build
+        run: make build

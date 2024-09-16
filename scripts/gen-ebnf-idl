@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+# © 2024 Microglot LLC
+# SPDX-License-Identifier: MIT
+
+# This script implements a small parser for the markdown format that identifies
+# and extracts any embedded code content that is labeled as EBNF. This is
+# intended to help keep the complete EBNF documents up to date without having to
+# manually maintain two copies. This way, any changes to the specification can
+# be automatically imported into the official EBNF document.
+
+INPUT="${1}"
+OUTPUT="${2}"
+
+cat << EOF > "${OUTPUT}"
+---
+sidebar_position: 4
+---
+
+# EBNF Notation Of The Microglot IDL
+
+\`\`\`ebnf
+EOF
+
+is_in_block=false
+c_t1=false
+c_t2=false
+c_t3=false
+c_e=false
+c_b=false
+c_n=false
+c_f=false
+block_buffer=""
+
+function reset_state() {
+    is_in_block=false
+    c_t1=false
+    c_t2=false
+    c_t3=false
+    c_e=false
+    c_b=false
+    c_n=false
+    c_f=false
+    block_buffer=""
+}
+
+readarray -t chars < <(sed 's/\(.\)/\1\n/g' "${INPUT}")
+
+for c in "${chars[@]}"; do
+    if [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == true && ${c_e} == true && ${c_b} == true && ${c_n} == true && ${c_f} == true && ${is_in_block} == false ]]; then
+        reset_state
+        is_in_block=true
+    fi
+    if [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == true && ${is_in_block} == true ]]; then
+        echo -ne "${block_buffer}" >> "${OUTPUT}"
+        reset_state
+    fi
+
+    if [[ ${is_in_block} == false ]]; then
+        if [[ "${c}" == $'\n' || "${c}" == "" ]]; then
+            continue
+        fi
+        if [[ ${c_t1} == false && ${c_t2} == false && ${c_t3} == false && ${c_e} == false && ${c_b} == false && ${c_n} == false && ${c_f} == false && ${c} == "\`" ]]; then
+            c_t1=true
+        elif [[ ${c_t1} == true && ${c_t2} == false && ${c_t3} == false && ${c_e} == false && ${c_b} == false && ${c_n} == false && ${c_f} == false && ${c} == "\`" ]]; then
+            c_t2=true
+        elif [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == false && ${c_e} == false && ${c_b} == false && ${c_n} == false && ${c_f} == false && ${c} == "\`" ]]; then
+            c_t3=true
+        elif [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == true && ${c_e} == false && ${c_b} == false && ${c_n} == false && ${c_f} == false && ${c} == "e" ]]; then
+            c_e=true
+        elif [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == true && ${c_e} == true && ${c_b} == false && ${c_n} == false && ${c_f} == false && ${c} == "b" ]]; then
+            c_b=true
+        elif [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == true && ${c_e} == true && ${c_b} == true && ${c_n} == false && ${c_f} == false && ${c} == "n" ]]; then
+            c_n=true
+        elif [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == true && ${c_e} == true && ${c_b} == true && ${c_n} == true && ${c_f} == false && ${c} == "f" ]]; then
+            c_f=true
+        else reset_state
+        fi
+    fi
+    if [[ ${is_in_block} == true ]]; then
+        if [[ ${c_t1} == false && ${c_t2} == false && ${c_t3} == false && ${c} == "\`" ]]; then
+            c_t1=true
+        elif [[ ${c_t1} == true && ${c_t2} == false && ${c_t3} == false && ${c} == "\`" ]]; then
+            c_t2=true
+        elif [[ ${c_t1} == true && ${c_t2} == true && ${c_t3} == false && ${c} == "\`" ]]; then
+            c_t3=true
+        elif [[ ${c} == "" ]]; then
+            c_t1=false && c_t2=false && c_t3=false && block_buffer="${block_buffer}\n"
+        else c_t1=false && c_t2=false && c_t3=false && block_buffer="${block_buffer}${c}"
+        fi
+    fi
+done
+
+echo '```' >> "${OUTPUT}"

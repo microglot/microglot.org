@@ -1,0 +1,36 @@
+{
+    "name": "Microglot Website",
+    "build": {
+        "dockerfile": "Containerfile",
+        "context": ".."
+    },
+    "remoteUser": "mglot",
+    "updateRemoteUserUID": true,
+    "containerEnv": {
+        "TZ": "Etc/UTC"
+    },
+    "mounts": [],
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "/usr/bin/bash"
+                    }
+                },
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "telemetry.telemetryLevel": "off",
+                "telemetry.enableTelemetry": false,
+                "files.insertFinalNewline": true,
+                "files.trimTrailingWhitespace": true,
+                "rewrap.wrappingColumn": 80
+            },
+            "extensions": [
+                "ms-vscode.makefile-tools",
+                "tamasfe.even-better-toml",
+                "timonwong.shellcheck",
+                "mkhl.shfmt"
+            ]
+        }
+    }
+}

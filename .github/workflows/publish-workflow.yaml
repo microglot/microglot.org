@@ -1,0 +1,28 @@
+name: Build And Release microglot.org
+
+on:
+  push:
+    branches:
+      - "main"
+  workflow_dispatch: {}
+
+jobs:
+  build_release:
+    name: Build And Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Generate build
+        run: make build
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: whoami
+          postCommands: make release
