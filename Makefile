@@ -1,6 +1,7 @@
 # © 2024 Microglot LLC
 # SPDX-License-Identifier: CC-BY-SA-4.0
 
+PROJECT_PATH = $(shell pwd -L)
 BUILD_DIR = $(PROJECT_PATH)/build
 PROJECT_NAME = microglot-dot-org
 
