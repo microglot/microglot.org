@@ -9,7 +9,9 @@ PROJECT_NAME = microglot-dot-org
 preview:
 	@ npm run start
 
-build:
+build: $(BUILD_DIR)
+
+$(BUILD_DIR):
 	@ npm run build
 
 release: | $(BUILD_DIR)
