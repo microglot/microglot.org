@@ -21,6 +21,9 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.node_modules.outputs.cache-hit != 'true'
+        run: npm install
       - name: Ensure files are annotated correctly for licensing
         run: make test/license
       - name: Test if the website can build
